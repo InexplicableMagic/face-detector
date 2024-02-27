@@ -215,7 +215,7 @@ def crop_resize_save(args, x,y,w,h,image,fname):
 			assert new_image_width == new_image_height, "Expected square image after save"
 		resized = cropped_image
 		if args.resize:
-			new_width, new_height = args.min_size
+			new_width, new_height = args.resize
 			resized = cv2.resize(cropped_image, (new_width, new_height))
 		save_image( resized, fname )
 
