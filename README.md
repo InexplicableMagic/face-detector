@@ -11,7 +11,7 @@ Face detector is a utility for locating faces in photographs. It can:
 
 Face detector uses a combination of two algorithms to improve face detection performance. Initially it tries a deep neural network approach. A [trained model called YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) (MIT License) is included. This model generates few false positives but is less suited to large images with faces greater in size than 300x300 pixels. To solve this the image is progressively rescaled and face identification is repeated at each scale until a face is detected. If this approach fails a traditional Haar cascade algorithm is used. This is prone to generating false positives but is more successful with larger faces. To reduce the false positive rate, this approach is blended with the deep neural network to double check the accuracy.
 
-Face detector can be useful for generating AI training data sets. Such data sets also often require duplicate images to be removed to avoid over-training, for which my [photo de-duplication](https://github.com/InexplicableMagic/photodedupe) repo may helpful. It would be recommended to run photodedupe prior to detecting faces.
+Face detector can be useful for generating AI training data sets. It can produce faces with a square aspect ratio and at a specific size which training may require. Such data sets also often require duplicate images to be removed to avoid over-training, for which my [photo de-duplication](https://github.com/InexplicableMagic/photodedupe) repo may helpful. It would be recommended to run photodedupe prior to detecting faces.
 
 ## Installation
 
@@ -35,7 +35,7 @@ Each of the detected faces will be quite closely cropped. To include more contex
 
 <p align="center"><img src="docs/expand-percent-example.jpg" width="300" /></p>
 
-AI training can require faces with a precisely **square aspect ratio** and a specific size. By default face detector can crop out rectangular regions. To force square images only use ```--square-aspect```. AI training also often requires images of a specific size. To **resize** cropped images use the ```--resize``` option specifying a widthxheight. For example to produce images with a square aspect ration and an exact size of 256x256 pixels specify:
+**AI training** can require faces with a precisely **square aspect ratio** and a specific size. By default face detector can crop out rectangular regions. To force square images only use ```--square-aspect```. AI training also often requires images of a specific size. To **resize** cropped images use the ```--resize``` option specifying a widthxheight. For example to produce images with a square aspect ration and an exact size of 256x256 pixels specify:
 
 ```./face_detect.py input_photos_dir/ --output-dir output_cropped_faces_dir/ --square-aspect --resize 256x256```
 
