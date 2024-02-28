@@ -35,7 +35,7 @@ Each of the detected faces will be quite closely cropped. To include more contex
 
 <p align="center"><img src="docs/expand-percent-example.jpg" width="300" /></p>
 
-AI training can require faces with a precisely **square aspect ratio** and a specific size. By default face detector can crop out rectangular regions. To force square images only use ```--square_aspect```. AI training also often requires images of a specific size. To **resize** cropped images use the ```--resize``` option specifying a widthxheight. For example to produce images with a square aspect ration and an exact size of 256x256 pixels specify:
+AI training can require faces with a precisely **square aspect ratio** and a specific size. By default face detector can crop out rectangular regions. To force square images only use ```--square-aspect```. AI training also often requires images of a specific size. To **resize** cropped images use the ```--resize``` option specifying a widthxheight. For example to produce images with a square aspect ration and an exact size of 256x256 pixels specify:
 
 ```./face_detect.py input_photos_dir/ --output-dir output_cropped_faces_dir/ --square-aspect --resize 256x256```
 
