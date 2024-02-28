@@ -1,6 +1,6 @@
-# face-detector
+# Face Detector
 
-Face detector is a utility for locating faces in photographs. It can:
+**Face detector** is a utility for locating faces in photographs. It can:
 - Crop out the detected faces
 - Provide a JSON file with the coordinates of the detected faces
 - List the files that have faces
