@@ -20,9 +20,6 @@ def detect_faces_haarcascades(image, min_width = 30, min_height = 30):
 	# Detect faces in the image
 	faces = face_cascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(min_width, min_height))
 
-
-	#print(f"Detected {len(faces)} face(s). Output saved as {output_path}")
-
 	if len(faces) > 0:
 		#returns (x, y, w, h)
 		return faces.tolist()
@@ -201,34 +198,48 @@ def filter_coords( args, face_coords ):
 
 	return face_coords
 	
-def crop_resize_save(args, x,y,w,h,image,fname):
+def crop_resize_save(args, face_set,image,file_name_without_extension,file_extension):
+
+
 	if args.highlight:
 		#Copies the image otherwise the rectangle stays on the image for the next face, it's a reference
 		clone = image.copy()
-		cv2.rectangle(clone, (x, y), (x + w, y + h), (255, 0, 0), 2)
-		cv2.imwrite(fname, clone)
+		for face in face_set:
+			x = face[0]
+			y = face[1]
+			w = face[2]
+			h = face[3]
+			cv2.rectangle(clone, (x, y), (x + w, y + h), (255, 0, 0), 2)
+		cv2.imwrite(file_name_without_extension+file_extension, clone)
 	else:
-		cropped_image = image[y:y+h, x:x+w]
-		if args.square_aspect:
-			new_image_height, new_image_width = cropped_image.shape[:2]
-			assert w == h, "Expected square image"
-			assert new_image_width == new_image_height, "Expected square image after save"
-		resized = cropped_image
-		if args.resize:
-			new_width, new_height = args.resize
-			resized = cv2.resize(cropped_image, (new_width, new_height))
-		save_image( resized, fname )
+		for i, face in enumerate(face_set):
+			x = face[0]
+			y = face[1]
+			w = face[2]
+			h = face[3]
+		
+			cropped_image = image[y:y+h, x:x+w]
+			if args.square_aspect:
+				new_image_height, new_image_width = cropped_image.shape[:2]
+				assert w == h, "Expected square image"
+				assert new_image_width == new_image_height, "Expected square image after save"
+			resized = cropped_image
+			if args.resize:
+				new_width, new_height = args.resize
+				resized = cv2.resize(cropped_image, (new_width, new_height))
+			save_image( resized, file_name_without_extension+"_face"+str(i)+file_extension )
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--min_size', type=parse_width_height_from_args, help='widthxheight - minimum width and height of a face in pixels e.g. 100x100')
+	parser.add_argument('--min-size', type=parse_width_height_from_args, help='widthxheight - minimum width and height of a face in pixels e.g. 100x100')
 	parser.add_argument('--resize', type=parse_width_height_from_args, help='widthxheight - resize all cropped imaged to this size')
-	parser.add_argument('--square_aspect', action="store_true" , help='Always output a square aspect ratio')
-	parser.add_argument('--expand_percent', type=float, help='Expand the detected face region by this percentage')
-	parser.add_argument('--output_dir', type=str, help='A directory into which to place the cropped versions of the detected faces')
+	parser.add_argument('--square-aspect', action="store_true" , help='Always output a square aspect ratio')
+	parser.add_argument('--expand-percent', type=float, help='Expand the detected face region by this percentage')
+	parser.add_argument('--output-dir', type=str, help='A directory into which to place the cropped versions of the detected faces')
 	parser.add_argument('--json', action='store_true', help='Output the detected face coordinates as json to stdout')
 	parser.add_argument('--highlight', action='store_true', help='Draw a bounding box on the original image instead of cropping out the face')
+	parser.add_argument('--file-list', action='store_true', help='List files that contain at least one face')
 
 
 	parser.add_argument('files', nargs="*");
@@ -258,7 +269,7 @@ if __name__ == "__main__":
 		
 	
 		
-	extensions = ( '*.jpg', '*.png' )
+	extensions = ( '*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG', '*.JPEG' )
 	for dir_path in args.files:
 		for ext in extensions:
 		    image_file_paths.extend(glob.glob(dir_path+"/"+ext))
@@ -291,16 +302,13 @@ if __name__ == "__main__":
 				new_w = int(new_w - scale_test)
 
 		if len(dnn_face_set) >= 1:
-			for i, face in enumerate(dnn_face_set):
-				x = face[0]
-				y = face[1]
-				w = face[2]
-				h = face[3]
-				faces_found+=1
-				if(args.output_dir):
-					crop_resize_save( args, x,y,w,h, image, args.output_dir+"/"+file_name_without_extension+"_face"+str(i)+file_extension )
+			faces_found += len( dnn_face_set ) 
+			if(args.output_dir):
+				crop_resize_save( args, dnn_face_set, image, args.output_dir+"/"+file_name_without_extension, file_extension )
 			this_obj = { "file" : image_fpath, "face_xywh": dnn_face_set }
 			json_output.append( this_obj )
+			if args.file_list:
+				print(image_fpath)
 			
 		else:
 			#If it still didn't find anything then try the Haar Cascade method
@@ -322,11 +330,14 @@ if __name__ == "__main__":
 						if len(dnn_face_set) >= 1:
 							face_set.append( face )
 							faces_found+=1
-							if(args.output_dir):
-								crop_resize_save( args, x,y,w,h, image, args.output_dir+"/"+file_name_without_extension+"_face"+str(i)+file_extension )
+						
 					if len(face_set) > 0:
 						this_obj = { "file" : image_fpath, "face_xywh": face_set }
 						json_output.append( this_obj )
+						if(args.output_dir):
+							crop_resize_save( args, face_set, image, args.output_dir+"/"+file_name_without_extension, file_extension )
+						if args.file_list:
+							print(image_fpath)
 			else:
 				print("No face found in: "+str(image_fpath), file=sys.stderr);
     
